@@ -33,7 +33,41 @@ function RemovePlayerMoney(Player, amount, moneyType)
     end
 end
 
+function GetPlayerIdentifier(Player)
+    if Config.Framework == 'qbcore' then
+        return Player.PlayerData.citizenid
+    elseif Config.Framework == 'esx' then
+        return Player.identifier
+    end
+end
+
+function GetPlayerCharInfo(Player)
+    if Config.Framework == 'qbcore' then
+        return {
+            firstname = Player.PlayerData.charinfo.firstname,
+            lastname = Player.PlayerData.charinfo.lastname,
+            birthdate = Player.PlayerData.charinfo.birthdate
+        }
+    elseif Config.Framework == 'esx' then
+        return {
+            firstname = Player.get('firstName') or 'John',
+            lastname = Player.get('lastName') or 'Doe',
+            birthdate = Player.get('dateofbirth') or '01/01/1990'
+        }
+    end
+end
+
+function GetPlayerSource(Player)
+    if Config.Framework == 'qbcore' then
+        return Player.PlayerData.source
+    elseif Config.Framework == 'esx' then
+        return Player.source
+    end
+end
+
 function AddLicense(Player, licenseType)
+    local source = GetPlayerSource(Player)
+    
     if Config.Framework == 'qbcore' then
         -- Map license types to QBCore license names
         local licenseMap = {
@@ -51,27 +85,29 @@ function AddLicense(Player, licenseType)
             
             -- Force save player data to database immediately
             Player.Functions.Save()
-            
-            -- Give physical item using configurable item names
-            local itemName = Config.LicenseItems[licenseType]
-            if itemName then
-                local licenseData = {
-                    firstname = Player.PlayerData.charinfo.firstname,
-                    lastname = Player.PlayerData.charinfo.lastname,
-                    birthdate = Player.PlayerData.charinfo.birthdate,
-                    type = qbLicenseType,
-                    issued = os.date('%m-%d-%Y'),
-                    expires = os.date('%m-%d-%Y', os.time() + (365 * 24 * 60 * 60))
-                }
-                Player.Functions.AddItem(itemName, 1, false, licenseData)
-            end
         end
     elseif Config.Framework == 'esx' then
         -- ESX license system
-        MySQL.Async.execute('INSERT INTO user_licenses (type, owner) VALUES (@type, @owner)', {
+        MySQL.Async.execute('INSERT INTO user_licenses (type, owner) VALUES (@type, @owner) ON DUPLICATE KEY UPDATE type = @type', {
             ['@type'] = licenseType,
             ['@owner'] = Player.identifier
         })
+    end
+    
+    -- Give physical item using inventory system
+    local itemName = Config.LicenseItems[licenseType]
+    if itemName then
+        local charInfo = GetPlayerCharInfo(Player)
+        local licenseData = {
+            firstname = charInfo.firstname,
+            lastname = charInfo.lastname,
+            birthdate = charInfo.birthdate,
+            type = licenseType,
+            issued = os.date('%m-%d-%Y'),
+            expires = os.date('%m-%d-%Y', os.time() + (365 * 24 * 60 * 60))
+        }
+        
+        Inventory.AddItem(source, Player, itemName, 1, licenseData)
     end
 end
 
@@ -103,6 +139,8 @@ function HasLicense(Player, licenseType, cb)
 end
 
 function RemoveLicense(Player, licenseType)
+    local source = GetPlayerSource(Player)
+    
     if Config.Framework == 'qbcore' then
         -- Map license types to QBCore license names
         local licenseMap = {
@@ -120,24 +158,18 @@ function RemoveLicense(Player, licenseType)
             
             -- Force save player data to database immediately
             Player.Functions.Save()
-            
-            -- Also remove physical item
-            local itemMap = {
-                regular = 'driver_license',
-                cdl = 'cdl_license',
-                motorcycle = 'motorcycle_license'
-            }
-            
-            local itemName = itemMap[licenseType]
-            if itemName then
-                Player.Functions.RemoveItem(itemName, 1)
-            end
         end
     elseif Config.Framework == 'esx' then
         MySQL.Async.execute('DELETE FROM user_licenses WHERE type = @type AND owner = @owner', {
             ['@type'] = licenseType,
             ['@owner'] = Player.identifier
         })
+    end
+    
+    -- Remove physical item
+    local itemName = Config.LicenseItems[licenseType]
+    if itemName then
+        Inventory.RemoveItem(source, Player, itemName, 1)
     end
 end
 
@@ -301,16 +333,6 @@ RegisterNetEvent('sd-drivingschool:server:finishDrivingTest', function(licenseTy
     end
 end)
 
--- Clean up test states when player disconnects
-AddEventHandler('playerDropped', function()
-    local src = source
-    if testStates[src] then
-        testStates[src] = nil
-    end
-end)
-
--- Add this event after the other events
-
 RegisterNetEvent('sd-drivingschool:server:buyReplacement', function(licenseType)
     local src = source
     local Player = GetPlayer(src)
@@ -339,33 +361,20 @@ RegisterNetEvent('sd-drivingschool:server:buyReplacement', function(licenseType)
         
         -- Remove money and give replacement item
         if RemovePlayerMoney(Player, Config.ReplacementCost, 'cash') then
-            -- Give physical item with metadata (they already have metadata license)
-            local itemMap = {
-                regular = 'driver_license',
-                cdl = 'cdl_license',
-                motorcycle = 'motorcycle_license'
-            }
+            local itemName = Config.LicenseItems[licenseType]
             
-            local licenseMap = {
-                regular = 'driver',
-                cdl = 'cdl',
-                motorcycle = 'motorcycle'
-            }
-            
-            local itemName = itemMap[licenseType]
-            local qbLicenseType = licenseMap[licenseType]
-            
-            if itemName and qbLicenseType then
+            if itemName then
+                local charInfo = GetPlayerCharInfo(Player)
                 local licenseData = {
-                    firstname = Player.PlayerData.charinfo.firstname,
-                    lastname = Player.PlayerData.charinfo.lastname,
-                    birthdate = Player.PlayerData.charinfo.birthdate,
-                    type = qbLicenseType,
+                    firstname = charInfo.firstname,
+                    lastname = charInfo.lastname,
+                    birthdate = charInfo.birthdate,
+                    type = licenseType,
                     issued = os.date('%m-%d-%Y'),
-                    expires = os.date('%m-%d-%Y', os.time() + (365 * 24 * 60 * 60)) -- 1 year from now
+                    expires = os.date('%m-%d-%Y', os.time() + (365 * 24 * 60 * 60))
                 }
                 
-                Player.Functions.AddItem(itemName, 1, false, licenseData)
+                Inventory.AddItem(src, Player, itemName, 1, licenseData)
                 ShowNotification(src, 'Replacement ' .. Config.Licenses[licenseType].name .. ' purchased for $' .. Config.ReplacementCost .. '!', 'success')
                 
                 -- Log the replacement
@@ -379,6 +388,14 @@ RegisterNetEvent('sd-drivingschool:server:buyReplacement', function(licenseType)
             ShowNotification(src, 'Payment failed!', 'error')
         end
     end)
+end)
+
+-- Clean up test states when player disconnects
+AddEventHandler('playerDropped', function()
+    local src = source
+    if testStates[src] then
+        testStates[src] = nil
+    end
 end)
 
 -- Admin Commands
@@ -434,7 +451,6 @@ if Config.Framework == 'qbcore' then
         ShowNotification(targetId, 'Your ' .. Config.Licenses[licenseType].name .. ' has been removed!', 'error')
     end, 'admin')
     
-    -- Add replacement command for admins
     QBCore.Commands.Add('givereplacement', 'Give a player a replacement license (Admin Only)', {
         {name = 'id', help = 'Player ID'},
         {name = 'type', help = 'License type (regular/cdl/motorcycle)'}
@@ -458,52 +474,102 @@ if Config.Framework == 'qbcore' then
             return
         end
         
-        -- Check if they have the license first
         HasLicense(targetPlayer, licenseType, function(hasLicense)
             if not hasLicense then
                 ShowNotification(source, 'Player doesn\'t have this license to replace!', 'error')
                 return
             end
             
-            -- Give replacement item
-            local itemMap = {
-                regular = 'driver_license',
-                cdl = 'cdl_license',
-                motorcycle = 'motorcycle_license'
-            }
-            
-            local licenseMap = {
-                regular = 'driver',
-                cdl = 'cdl',
-                motorcycle = 'motorcycle'
-            }
-            
-            local itemName = itemMap[licenseType]
-            local qbLicenseType = licenseMap[licenseType]
-            
-            if itemName and qbLicenseType then
+            local itemName = Config.LicenseItems[licenseType]
+            if itemName then
+                local charInfo = GetPlayerCharInfo(targetPlayer)
                 local licenseData = {
-                    firstname = targetPlayer.PlayerData.charinfo.firstname,
-                    lastname = targetPlayer.PlayerData.charinfo.lastname,
-                    birthdate = targetPlayer.PlayerData.charinfo.birthdate,
-                    type = qbLicenseType,
+                    firstname = charInfo.firstname,
+                    lastname = charInfo.lastname,
+                    birthdate = charInfo.birthdate,
+                    type = licenseType,
                     issued = os.date('%m-%d-%Y'),
                     expires = os.date('%m-%d-%Y', os.time() + (365 * 24 * 60 * 60))
                 }
                 
-                targetPlayer.Functions.AddItem(itemName, 1, false, licenseData)
+                Inventory.AddItem(targetId, targetPlayer, itemName, 1, licenseData)
                 ShowNotification(source, 'Replacement license given successfully!', 'success')
                 ShowNotification(targetId, 'You have been given a replacement ' .. Config.Licenses[licenseType].name .. '!', 'success')
             end
         end)
     end, 'admin')
+elseif Config.Framework == 'esx' then
+    ESX.RegisterCommand('givelicense', 'admin', function(xPlayer, args, showError)
+        local targetId = tonumber(args.id)
+        local licenseType = args.type
+        
+        if not targetId or not licenseType then
+            xPlayer.showNotification('Invalid arguments!')
+            return
+        end
+        
+        if not Config.Licenses[licenseType] then
+            xPlayer.showNotification('Invalid license type!')
+            return
+        end
+        
+        local targetPlayer = ESX.GetPlayerFromId(targetId)
+        if not targetPlayer then
+            xPlayer.showNotification('Player not found!')
+            return
+        end
+        
+        AddLicense(targetPlayer, licenseType)
+        xPlayer.showNotification('License given successfully!')
+        targetPlayer.showNotification('You have been given a ' .. Config.Licenses[licenseType].name .. '!')
+    end, true, {help = 'Give a player a driving license', validate = true, arguments = {
+        {name = 'id', help = 'Player ID', type = 'number'},
+        {name = 'type', help = 'License type (regular/cdl/motorcycle)', type = 'string'}
+    }})
+    
+    ESX.RegisterCommand('removelicense', 'admin', function(xPlayer, args, showError)
+        local targetId = tonumber(args.id)
+        local licenseType = args.type
+        
+        if not targetId or not licenseType then
+            xPlayer.showNotification('Invalid arguments!')
+            return
+        end
+        
+        local targetPlayer = ESX.GetPlayerFromId(targetId)
+        if not targetPlayer then
+            xPlayer.showNotification('Player not found!')
+            return
+        end
+        
+        RemoveLicense(targetPlayer, licenseType)
+        xPlayer.showNotification('License removed successfully!')
+        targetPlayer.showNotification('Your ' .. Config.Licenses[licenseType].name .. ' has been removed!')
+    end, true, {help = 'Remove a player\'s driving license', validate = true, arguments = {
+        {name = 'id', help = 'Player ID', type = 'number'},
+        {name = 'type', help = 'License type (regular/cdl/motorcycle)', type = 'string'}
+    }})
+end
+
+-- Database setup for ESX
+if Config.Framework == 'esx' and Config.Inventory == 'esx_default' and Config.InventorySettings.esx_default.useDatabase then
+    MySQL.ready(function()
+        MySQL.Async.execute([[
+            CREATE TABLE IF NOT EXISTS `user_licenses_items` (
+                `identifier` varchar(60) NOT NULL,
+                `item_name` varchar(50) NOT NULL,
+                `metadata` longtext,
+                PRIMARY KEY (`identifier`, `item_name`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        ]], {})
+    end)
 end
 
 -- Startup message
 Citizen.CreateThread(function()
     Wait(1000)
     print('^2[SD-DrivingSchool]^0 Successfully loaded with framework: ^3' .. Config.Framework .. '^0')
-    print('^2[SD-DrivingSchool]^0 Using QBCore metadata license system')
+    print('^2[SD-DrivingSchool]^0 Using inventory system: ^3' .. Config.Inventory .. '^0')
     print('^2[SD-DrivingSchool]^0 Replacement cost: $' .. Config.ReplacementCost)
     print('^2[SD-DrivingSchool]^0 Created by Shawns Developments')
 end)

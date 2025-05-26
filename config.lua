@@ -3,6 +3,9 @@ Config = {}
 -- Framework Detection (auto, qbcore, esx)
 Config.Framework = 'auto' -- Set to 'auto' for automatic detection, 'qbcore' or 'esx' for manual
 
+-- Inventory System (auto, qb-inventory, ps-inventory, qs-inventory, ox_inventory, esx_default)
+Config.Inventory = 'auto' -- Set to 'auto' for automatic detection or specify manually
+
 -- General Settings
 Config.Debug = false
 Config.Locale = 'en'
@@ -10,11 +13,44 @@ Config.Locale = 'en'
 -- Replacement License Cost
 Config.ReplacementCost = 250 -- Cost to replace a lost license
 
--- License Item Names (configurable for different QBCore versions)
+-- License Item Names (configurable for different frameworks/inventories)
 Config.LicenseItems = {
-    regular = 'drivers_license', -- Use whatever the license is in your qb-core/shared/items.lua file
+    regular = 'drivers_license', -- Use whatever the license is in your items file
     cdl = 'cdl_license',
     motorcycle = 'motorcycle_license'
+}
+
+-- Inventory System Settings
+Config.InventorySettings = {
+    -- For ox_inventory
+    ox_inventory = {
+        useMetadata = true,
+        metadataKeys = {
+            firstname = 'firstname',
+            lastname = 'lastname',
+            birthdate = 'birthdate',
+            type = 'type',
+            issued = 'issued',
+            expires = 'expires'
+        }
+    },
+    -- For ESX default inventory
+    esx_default = {
+        useDatabase = true,
+        tableName = 'user_licenses_items' -- Custom table for ESX license items
+    },
+    -- For QBCore based inventories
+    qbcore_based = {
+        useMetadata = true,
+        metadataKeys = {
+            firstname = 'firstname',
+            lastname = 'lastname',
+            birthdate = 'birthdate',
+            type = 'type',
+            issued = 'issued',
+            expires = 'expires'
+        }
+    }
 }
 
 -- License Types Configuration
