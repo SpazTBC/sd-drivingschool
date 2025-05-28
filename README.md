@@ -1,299 +1,429 @@
-# SD Driving School 🚗
+# SD-DrivingSchool
 
-A comprehensive driving school system for FiveM servers supporting both QBCore and ESX frameworks with multiple inventory system compatibility.
+A comprehensive driving school resource for FiveM servers supporting both QBCore and ESX frameworks. This resource allows players to obtain various types of driving licenses through written and practical driving tests.
 
-## Features ✨
+## 🌟 Features
 
-- **Multi-Framework Support**: Automatic detection and support for QBCore and ESX
-- **Multi-Inventory Support**: Compatible with qb-inventory, ps-inventory, qs-inventory, ox_inventory, and ESX default
-- **Multiple License Types**: Regular, CDL, and Motorcycle licenses
-- **Comprehensive Testing System**: Both written and practical driving tests
-- **License Replacement**: Players can purchase replacement licenses
-- **Configurable Scoring**: Customizable test requirements and scoring system
-- **Admin Commands**: Full administrative control over licenses
-- **Physical License Items**: Gives actual license items with metadata
-- **Interactive NPC**: Driving instructor with qb-target integration
-- **Map Blips**: Configurable map markers for the driving school
+- 🚗 **Multiple License Types**: Regular, CDL, and Motorcycle licenses
+- 📝 **Written Tests**: Customizable questions for each license type
+- 🛣️ **Driving Tests**: Practical driving tests with checkpoints and scoring
+- 💰 **Replacement Licenses**: Players can purchase replacement licenses
+- 🎯 **Interactive NPC**: Driving instructor with qb-target integration
+- 📍 **Map Blip**: Configurable blip for the driving school location
+- 🔧 **Framework Support**: Compatible with QBCore and ESX
+- 📦 **Inventory Integration**: Supports multiple inventory systems
+- 👮 **Admin Commands**: License management commands for administrators
 
-## Supported Inventory Systems 📦
+## 📋 Requirements
 
-### QBCore Compatible
-- **qb-inventory** (Default QBCore inventory)
-- **ps-inventory** (Project Sloth inventory)
-- **qs-inventory** (Quasar inventory)
-- **ox_inventory** (Overextended inventory)
+- **QBCore** or **ESX** framework
+- **qb-target** (for NPC interaction)
+- **qb-menu** or **esx_menu_default** (for menus)
+- **MySQL** (for ESX license storage)
 
-### ESX Compatible
-- **ESX Default** (Built-in ESX inventory)
-- **ox_inventory** (Overextended inventory for ESX)
+## 📥 Installation
 
-## Installation 📦
+### Step 1: Download and Extract
+1. Download the `sd-drivingschool` resource
+2. Extract the folder to your server's `resources` directory
+3. Ensure the folder is named `sd-drivingschool`
 
-### Prerequisites
-- QBCore or ESX framework
-- mysql-async
-- One of the supported inventory systems
-- qb-target (optional but recommended for QBCore)
-- qb-menu (for QBCore menus)
-
-### Steps
-
-1. **Download and Extract**
-   ```bash
-   cd resources
-   git clone https://github.com/SpazTBC/sd-drivingschool.git
-   ```
-
-2. **Database Setup**
-   
-   **For ESX users**, run the provided SQL:
-   ```bash
-   mysql -u username -p database_name < sd-drivingschool/install.sql
-   ```
-
-3. **Configure Items**
-   
-   **For QBCore**, add these items to your `qb-core/shared/items.lua`:
-   ```lua
-   ['drivers_license'] = {
-       ['name'] = 'drivers_license',
-       ['label'] = 'Driver License',
-       ['weight'] = 0,
-       ['type'] = 'item',
-       ['image'] = 'driver_license.png',
-       ['unique'] = true,
-       ['useable'] = true,
-       ['shouldClose'] = false,
-       ['combinable'] = nil,
-       ['description'] = 'Permit to show you can drive a vehicle'
-   },
-   ['cdl_license'] = {
-       ['name'] = 'cdl_license',
-       ['label'] = 'Commercial Driver License',
-       ['weight'] = 0,
-       ['type'] = 'item',
-       ['image'] = 'cdl_license.png',
-       ['unique'] = true,
-       ['useable'] = true,
-       ['shouldClose'] = false,
-       ['combinable'] = nil,
-       ['description'] = 'Permit to drive commercial vehicles'
-   },
-   ['motorcycle_license'] = {
-       ['name'] = 'motorcycle_license',
-       ['label'] = 'Motorcycle License',
-       ['weight'] = 0,
-       ['type'] = 'item',
-       ['image'] = 'motorcycle_license.png',
-       ['unique'] = true,
-       ['useable'] = true,
-       ['shouldClose'] = false,
-       ['combinable'] = nil,
-       ['description'] = 'Permit to drive motorcycles'
-   },
-   ```
-
-   **For ox_inventory**, add to your `ox_inventory/data/items.lua`:
-   ```lua
-   ['drivers_license'] = {
-       label = 'Driver License',
-       weight = 0,
-       stack = false,
-       close = false,
-       description = 'Permit to show you can drive a vehicle'
-   },
-   ['cdl_license'] = {
-       label = 'Commercial Driver License',
-       weight = 0,
-       stack = false,
-       close = false,
-       description = 'Permit to drive commercial vehicles'
-   },
-   ['motorcycle_license'] = {
-       label = 'Motorcycle License',
-       weight = 0,
-       stack = false,
-       close = false,
-       description = 'Permit to drive motorcycles'
-   },
-   ```
-
-   **For ESX**, add to your database items table or items.lua depending on your setup.
-
-4. **Add to server.cfg**
-   ```cfg
-   ensure sd-drivingschool
-   ```
-
-5. **Restart Server**
-   ```bash
-   restart sd-drivingschool
-   ```
-
-## Configuration ⚙️
-
-### Framework and Inventory Settings
-```lua
--- Automatic detection (recommended)
-Config.Framework = 'auto' -- 'auto', 'qbcore', or 'esx'
-Config.Inventory = 'auto'  -- 'auto', 'qb-inventory', 'ps-inventory', 'qs-inventory', 'ox_inventory', 'esx_default'
-
--- Manual configuration example
-Config.Framework = 'qbcore'
-Config.Inventory = 'ps-inventory'
+### Step 2: Add to Server Configuration
+1. Open your `server.cfg` file
+2. Add the following line:
+```cfg
+ensure sd-drivingschool
 ```
 
-### License Item Names
+### Step 3: Configure the Resource
+1. Open `config.lua` in the resource folder
+2. Set your framework:
 ```lua
--- Customize these to match your server's item names
-Config.LicenseItems = {
-    regular = 'drivers_license',
-    cdl = 'cdl_license',
-    motorcycle = 'motorcycle_license'
+Config.Framework = 'qbcore' -- Change to 'esx' if using ESX
+```
+3. Configure your inventory system:
+```lua
+Config.Inventory = 'qb-inventory' -- Change to your inventory system
+```
+
+### Step 4: Add License Items to Your Inventory
+Add these items to your inventory system's items file:
+
+**For QBCore (`qb-core/shared/items.lua`):**
+```lua
+-- Add these items to your items table
+driver_license = {
+    name = 'driver_license',
+    label = 'Driver License',
+    weight = 0,
+    type = 'item',
+    image = 'driver_license.png',
+    unique = true,
+    useable = true,
+    shouldClose = true,
+    combinable = nil,
+    description = 'Official Driver License'
+},
+cdl_license = {
+    name = 'cdl_license',
+    label = 'CDL License',
+    weight = 0,
+    type = 'item',
+    image = 'cdl_license.png',
+    unique = true,
+    useable = true,
+    shouldClose = true,
+    combinable = nil,
+    description = 'Commercial Driver License'
+},
+motorcycle_license = {
+    name = 'motorcycle_license',
+    label = 'Motorcycle License',
+    weight = 0,
+    type = 'item',
+    image = 'motorcycle_license.png',
+    unique = true,
+    useable = true,
+    shouldClose = true,
+    combinable = nil,
+    description = 'Official Motorcycle License'
 }
 ```
 
-### Inventory-Specific Settings
+**For ESX (`es_extended/config.lua` or your inventory resource):**
 ```lua
-Config.InventorySettings = {
-    -- ox_inventory specific settings
-    ox_inventory = {
-        useMetadata = true,
-        metadataKeys = {
-            firstname = 'firstname',
-            lastname = 'lastname',
-            birthdate = 'birthdate',
-            type = 'type',
-            issued = 'issued',
-            expires = 'expires'
-        }
+-- Add to your items configuration
+['driver_license'] = {
+    label = 'Driver License',
+    weight = 0,
+    stack = false,
+    close = true,
+    description = 'Official Driver License'
+},
+['cdl_license'] = {
+    label = 'CDL License',
+    weight = 0,
+    stack = false,
+    close = true,
+    description = 'Commercial Driver License'
+},
+['motorcycle_license'] = {
+    label = 'Motorcycle License',
+    weight = 0,
+    stack = false,
+    close = true,
+    description = 'Official Motorcycle License'
+}
+```
+
+### Step 5: Restart Your Server
+1. Save all configuration files
+2. Restart your FiveM server
+3. Check console for any errors
+
+## ⚙️ Configuration
+
+### Basic Configuration
+Open `config.lua` and modify these settings:
+
+```lua
+Config = {}
+
+-- Framework Settings
+Config.Framework = 'qbcore' -- 'qbcore' or 'esx'
+Config.Inventory = 'qb-inventory' -- Your inventory system
+Config.ReplacementCost = 500 -- Cost for replacement licenses
+Config.Debug = false -- Enable debug prints
+
+-- Driving School Location
+Config.DrivingSchool = {
+    coords = vector3(-1037.58, -2738.84, 20.17),
+    blip = {
+        enabled = true,
+        sprite = 225,
+        color = 3,
+        scale = 0.8,
+        name = "Driving School"
     },
-    -- ESX default inventory settings
-    esx_default = {
-        useDatabase = true,
-        tableName = 'user_licenses_items'
+    ped = {
+        enabled = true,
+        model = 'a_m_y_business_01',
+        coords = vector4(-1037.58, -2738.84, 20.17, 240.0)
     }
 }
 ```
 
-## Inventory System Features 🎯
+### Scoring System Configuration
+```lua
+Config.DrivingScoring = {
+    startingScore = 100,
+    speedingPenalty = 5,
+    crashPenalty = 15,
+    maxSpeed = 35 -- MPH
+}
+```
 
-### Metadata Support
-The script automatically detects your inventory system and applies the appropriate metadata format:
+## 🆕 Adding New Licenses
 
-- **QBCore inventories**: Uses `info` table for metadata
-- **ox_inventory**: Uses `metadata` table
-- **ESX default**: Stores metadata in custom database table
+Follow these steps to add a new license type:
 
-### License Information
-Each license item contains:
-- **First Name** and **Last Name**
-- **Date of Birth**
-- **License Type**
-- **Issue Date**
-- **Expiration Date** (1 year from issue)
+### Step 1: Add License Configuration
+Open `config.lua` and add your new license to the `Config.Licenses` table:
 
-## Troubleshooting 🔧
+```lua
+Config.Licenses = {
+    -- Existing licenses (regular, cdl, motorcycle)...
+    
+    -- Add your new license here
+    pilot = {
+        enabled = true,
+        name = 'Pilot License',
+        price = 10000,
+        drivingTest = true,  -- Enable practical test
+        writtenTest = true,  -- Enable written test
+        vehicle = 'luxor',   -- Vehicle for driving test
+        spawnLocation = vector4(-1266.0, -3013.0, 13.9, 329.0), -- Airport location
+        testRoute = {
+            vector3(-1266.0, -3013.0, 13.9),
+            vector3(-1400.0, -3100.0, 13.9),
+            vector3(-1500.0, -3000.0, 13.9),
+            vector3(-1266.0, -3013.0, 13.9)
+        },
+        requiredScore = 85,  -- Higher requirement for pilot
+        timeLimit = 600      -- 10 minutes
+    }
+}
+```
 
-### Inventory-Related Issues
+### Step 2: Add License Item Mapping
+In the same `config.lua` file, add your license item:
 
-1. **Items not appearing in inventory**
-   - Verify items are added to your inventory system's items file
-   - Check item names match `Config.LicenseItems`
-   - Ensure inventory system is started before this resource
+```lua
+Config.LicenseItems = {
+    regular = 'driver_license',
+    cdl = 'cdl_license',
+    motorcycle = 'motorcycle_license',
+    pilot = 'pilot_license' -- Add your new license item
+}
+```
 
-2. **Metadata not showing**
-   - Check if your inventory supports metadata/info
-   - Verify `Config.Inventory` is set correctly
-   - For ox_inventory, ensure items are properly configured
+### Step 3: Create Written Test Questions
+Add questions for your new license:
 
-3. **ESX inventory issues**
-   - Run the provided SQL file
-   - Check MySQL connection
-   - Verify ESX inventory is working properly
+```lua
+Config.WrittenQuestions = {
+    -- Existing questions...
+    
+    pilot = {
+        {
+            question = "What is the minimum altitude for VFR flight over congested areas?",
+            answers = {
+                "500 feet",
+                "1000 feet", 
+                "1500 feet",
+                "2000 feet"
+            },
+            correct = 2 -- Index of correct answer (1000 feet)
+        },
+        {
+            question = "What does VFR stand for?",
+            answers = {
+                "Visual Flight Rules",
+                "Very Fast Rules", 
+                "Vertical Flight Rules",
+                "Variable Flight Rules"
+            },
+            correct = 1 -- Visual Flight Rules
+        },
+        {
+            question = "What is the standard traffic pattern altitude?",
+            answers = {
+                "500 feet AGL",
+                "1000 feet AGL",
+                "1500 feet AGL", 
+                "2000 feet AGL"
+            },
+            correct = 2 -- 1000 feet AGL
+        }
+        -- Add more questions as needed (minimum 5-10 recommended)
+    }
+}
+```
+
+### Step 4: Update License Mapping (QBCore Only)
+If using QBCore, update the license mapping in both files:
+
+**In `client.lua` - Find the `HasLicense` function and update:**
+```lua
+local licenseMap = {
+    regular = 'driver',
+    cdl = 'cdl', 
+    motorcycle = 'motorcycle',
+    pilot = 'pilot' -- Add your mapping
+}
+```
+
+**In `server.lua` - Find the `AddLicense` function and update:**
+```lua
+local licenseMap = {
+    regular = 'driver',
+    cdl = 'cdl',
+    motorcycle = 'motorcycle', 
+    pilot = 'pilot' -- Add your mapping
+}
+```
+
+### Step 5: Add Item to Inventory System
+Add the new license item to your inventory:
+
+**For QBCore (`qb-core/shared/items.lua`):**
+```lua
+pilot_license = {
+    name = 'pilot_license',
+    label = 'Pilot License',
+    weight = 0,
+    type = 'item',
+    image = 'pilot_license.png',
+    unique = true,
+    useable = true,
+    shouldClose = true,
+    combinable = nil,
+    description = 'Official Pilot License - Allows operation of aircraft'
+}
+```
+
+**For ESX:**
+```lua
+['pilot_license'] = {
+    label = 'Pilot License',
+    weight = 0,
+    stack = false,
+    close = true,
+    description = 'Official Pilot License - Allows operation of aircraft'
+}
+```
+
+### Step 6: Test Your New License
+1. Restart your server
+2. Go to the driving school location
+3. Check if your new license appears in the menu
+4. Test both written and driving portions
+
+## 🎮 How to Use
+
+### For Players
+1. **Visit the Driving School**: Go to the marked location on the map
+2. **Interact with NPC**: Use your interaction key (default: E) on the driving instructor
+3. **Choose License Type**: Select which license you want to obtain
+4. **Take Tests**: Complete written and/or driving tests as required
+5. **Receive License**: Upon passing, receive your license item
+
+### Test Types
+- **Written Test**: Answer multiple choice questions
+- **Driving Test**: Follow checkpoints while maintaining good driving
+- **Replacement**: Purchase a new copy if you lose your license
+
+## 👨‍💼 Admin Commands
+
+### QBCore Commands
+```
+/givelicense [player_id] [license_type]
+```
+- **Example**: `/givelicense 1 regular`
+- **Description**: Give a player a specific license
+
+```
+/removelicense [player_id] [license_type] 
+```
+- **Example**: `/removelicense 1 motorcycle`
+- **Description**: Remove a player's license
+
+```
+/givereplacement [player_id] [license_type]
+```
+- **Example**: `/givereplacement 1 cdl`
+- **Description**: Give a replacement license item
+
+### License Types
+- `regular` - Standard driver's license
+- `cdl` - Commercial driver's license  
+- `motorcycle` - Motorcycle license
+- `pilot` - Pilot license (if added)
+
+## 🔧 Advanced Configuration
+
+### Custom Inventory Integration
+To integrate with a custom inventory system, modify the `Inventory` table in `config.lua`:
+
+```lua
+Config.Inventory = 'custom_inventory'
+
+-- Add your custom inventory functions
+Config.InventorySettings = {
+    custom_inventory = {
+        AddItem = function(source, Player, item, amount, metadata)
+            -- Your custom add item function
+            exports['custom_inventory']:AddItem(source, item, amount, metadata)
+        end,
+        RemoveItem = function(source, Player, item, amount)
+            -- Your custom remove item function  
+            exports['custom_inventory']:RemoveItem(source, item, amount)
+        end
+    }
+}
+```
+
+### Custom Test Routes
+Create custom driving test routes by modifying the `testRoute` in license configuration:
+
+```lua
+testRoute = {
+    vector3(-1037.58, -2738.84, 20.17), -- Start point
+    vector3(-1100.0, -2800.0, 20.0),    -- Checkpoint 1
+    vector3(-1200.0, -2850.0, 20.0),    -- Checkpoint 2  
+    vector3(-1150.0, -2900.0, 20.0),    -- Checkpoint 3
+    vector3(-1037.58, -2738.84, 20.17)  -- End point (back to start)
+}
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**License not appearing in menu:**
+- Check if `enabled = true` in license configuration
+- Verify license type spelling matches exactly
+- Ensure server restarted after configuration changes
+
+**Items not being given:**
+- Verify item exists in your inventory system
+- Check item name matches in `Config.LicenseItems`
+- Ensure inventory system is properly configured
+
+**NPC not spawning:**
+- Check if `ped.enabled = true` in configuration
+- Verify coordinates are correct for your server
+- Ensure qb-target is installed and working
+
+**Tests not starting:**
+- Check player has enough money
+- Verify player doesn't already have the license
+- Check console for error messages
 
 ### Debug Mode
-Enable debug mode to see detailed logs:
+Enable debug mode in config to see detailed console output:
 ```lua
 Config.Debug = true
 ```
 
-### Console Output
-The script will show which systems it detected on startup:
-```
-[SD-DrivingSchool] Successfully loaded with framework: qbcore
-[SD-DrivingSchool] Using inventory system: ps-inventory
-```
+## 📞 Support
 
-## API Functions 🔧
+For support and updates, contact **Shawns Developments**.
 
-### Inventory Functions
-```lua
--- Add item with metadata
-Inventory.AddItem(source, Player, itemName, amount, metadata)
+## 📄 License
 
--- Remove item
-Inventory.RemoveItem(source, Player, itemName, amount)
-
--- Check if player has item
-Inventory.HasItem(source, Player, itemName, callback)
-
--- Get item metadata
-Inventory.GetItemMetadata(source, Player, itemName, callback)
-```
-
-## Supported Versions 📋
-
-### Framework Versions
-- **QBCore**: All recent versions
-- **ESX**: 1.2+ and Legacy
-
-### Inventory Versions
-- **qb-inventory**: All versions
-- **ps-inventory**: v2.0+
-- **qs-inventory**: All versions
-- **ox_inventory**: v2.0+
-- **ESX default**: All versions
-
-## Migration Guide 🔄
-
-### From v1.0 to v2.0
-1. Update your `config.lua` with new inventory settings
-2. Add inventory items to your inventory system
-3. For ESX users, run the new SQL file
-4. Restart the resource
-
-### Switching Inventory Systems
-1. Update `Config.Inventory` in config.lua
-2. Add items to your new inventory system
-3. Restart the resource
-
-The script will automatically detect and adapt to your new inventory system.
-
-## Credits 👏
-
-- **Author**: Shawns Developments
-- **Framework Support**: QBCore & ESX
-- **Inventory Support**: Multiple systems
-- **Special Thanks**: FiveM community
-
-## Changelog 📝
-
-### Version 2.0.0
-- Added multi-inventory support
-- Added ox_inventory compatibility
-- Added ps-inventory compatibility
-- Added qs-inventory compatibility
-- Improved ESX inventory support
-- Enhanced metadata handling
-- Better error handling and debugging
-
-### Version 1.0.0
-- Initial release
-- QBCore support
-- Basic ESX support
-- License system implementation
+This resource is created by **Shawns Developments**. Please respect the terms of use and licensing agreements.
 
 ---
 
-**Made with ❤️ by Shawns Developments**
+**⚠️ Important**: Always test new configurations on a development server before deploying to production!

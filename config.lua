@@ -15,7 +15,7 @@ Config.ReplacementCost = 250 -- Cost to replace a lost license
 
 -- License Item Names (configurable for different frameworks/inventories)
 Config.LicenseItems = {
-    regular = 'drivers_license', -- Use whatever the license is in your items file
+    regular = 'driver_license', -- Use whatever the license is in your items file
     cdl = 'cdl_license',
     motorcycle = 'motorcycle_license'
 }
