@@ -1,6 +1,6 @@
 # SD-DrivingSchool
 
-A comprehensive driving school resource for FiveM servers supporting both QBCore and ESX frameworks. This resource allows players to obtain various types of driving licenses through written and practical driving tests.
+A comprehensive driving school resource for FiveM servers supporting QBX (QBox), QBCore, and ESX frameworks. This resource allows players to obtain various types of driving licenses through written and practical driving tests.
 
 ## 🌟 Features
 
@@ -10,16 +10,23 @@ A comprehensive driving school resource for FiveM servers supporting both QBCore
 - 💰 **Replacement Licenses**: Players can purchase replacement licenses
 - 🎯 **Interactive NPC**: Driving instructor with qb-target integration
 - 📍 **Map Blip**: Configurable blip for the driving school location
-- 🔧 **Framework Support**: Compatible with QBCore and ESX
-- 📦 **Inventory Integration**: Supports multiple inventory systems
+- 🔧 **Framework Support**: Compatible with QBX (QBox), QBCore, and ESX
+- 📦 **Inventory Integration**: Supports multiple inventory systems (ox_inventory, qs-inventory, ps-inventory, qb-inventory, esx_default)
+- 🔗 **Bridge System**: Modular framework bridges for easy maintenance and updates
 - 👮 **Admin Commands**: License management commands for administrators
 
 ## 📋 Requirements
 
-- **QBCore** or **ESX** framework
+- **QBX (QBox)**, **QBCore**, or **ESX** framework
 - **qb-target** (for NPC interaction)
 - **qb-menu** or **esx_menu_default** (for menus)
 - **MySQL** (for ESX license storage)
+- One of the supported inventory systems:
+  - **ox_inventory** (recommended)
+  - **qs-inventory**
+  - **ps-inventory** 
+  - **qb-inventory**
+  - **esx_default** (ESX only)
 
 ## 📥 Installation
 
@@ -37,19 +44,21 @@ ensure sd-drivingschool
 
 ### Step 3: Configure the Resource
 1. Open `config.lua` in the resource folder
-2. Set your framework:
+2. Set your framework (or leave as 'auto' for automatic detection):
 ```lua
-Config.Framework = 'qbcore' -- Change to 'esx' if using ESX
+Config.Framework = 'auto' -- 'auto', 'qbx', 'qbcore', or 'esx'
 ```
-3. Configure your inventory system:
+3. Configure your inventory system (or leave as 'auto' for automatic detection):
 ```lua
-Config.Inventory = 'qb-inventory' -- Change to your inventory system
+Config.Inventory = 'auto' -- 'auto', 'ox_inventory', 'qs-inventory', 'ps-inventory', 'qb-inventory', or 'esx_default'
 ```
+
+> **Note**: The resource automatically detects your framework and inventory system. Manual configuration is only needed if auto-detection fails.
 
 ### Step 4: Add License Items to Your Inventory
 Add these items to your inventory system's items file:
 
-**For QBCore (`qb-core/shared/items.lua`):**
+**For QBX/QBCore (`qbx_core/shared/items.lua` or `qb-core/shared/items.lua`):**
 ```lua
 -- Add these items to your items table
 driver_license = {
@@ -91,6 +100,7 @@ motorcycle_license = {
 ```
 
 **For ESX (`es_extended/config.lua` or your inventory resource):**
+> **Note**: If using ox_inventory with ESX, add items to `ox_inventory/data/items.lua` instead.
 ```lua
 -- Add to your items configuration
 ['driver_license'] = {
@@ -130,8 +140,8 @@ Open `config.lua` and modify these settings:
 Config = {}
 
 -- Framework Settings
-Config.Framework = 'qbcore' -- 'qbcore' or 'esx'
-Config.Inventory = 'qb-inventory' -- Your inventory system
+Config.Framework = 'auto' -- 'auto', 'qbx', 'qbcore', or 'esx'
+Config.Inventory = 'auto' -- 'auto', 'ox_inventory', 'qs-inventory', 'ps-inventory', 'qb-inventory', or 'esx_default'
 Config.ReplacementCost = 500 -- Cost for replacement licenses
 Config.Debug = false -- Enable debug prints
 
@@ -250,10 +260,10 @@ Config.WrittenQuestions = {
 }
 ```
 
-### Step 4: Update License Mapping (QBCore Only)
-If using QBCore, update the license mapping in both files:
+### Step 4: Update License Mapping (QBX/QBCore Only)
+If using QBX or QBCore, update the license mapping in the bridge files:
 
-**In `client.lua` - Find the `HasLicense` function and update:**
+**In `shared/qb.lua` and `shared/qbx.lua` - Find the license mapping and update:**
 ```lua
 local licenseMap = {
     regular = 'driver',
@@ -263,20 +273,12 @@ local licenseMap = {
 }
 ```
 
-**In `server.lua` - Find the `AddLicense` function and update:**
-```lua
-local licenseMap = {
-    regular = 'driver',
-    cdl = 'cdl',
-    motorcycle = 'motorcycle', 
-    pilot = 'pilot' -- Add your mapping
-}
-```
+> **Note**: The bridge system automatically handles framework differences. You only need to update the mapping in the relevant bridge file(s).
 
 ### Step 5: Add Item to Inventory System
 Add the new license item to your inventory:
 
-**For QBCore (`qb-core/shared/items.lua`):**
+**For QBX/QBCore (`qbx_core/shared/items.lua` or `qb-core/shared/items.lua`):**
 ```lua
 pilot_license = {
     name = 'pilot_license',
@@ -325,7 +327,7 @@ pilot_license = {
 
 ## 👨‍💼 Admin Commands
 
-### QBCore Commands
+### QBX/QBCore Commands
 ```
 /givelicense [player_id] [license_type]
 ```
@@ -352,8 +354,16 @@ pilot_license = {
 
 ## 🔧 Advanced Configuration
 
+### Framework Bridge System
+The resource uses a modular bridge system with separate files for each framework:
+- `shared/qbx.lua` - QBX (QBox) bridge
+- `shared/qb.lua` - QBCore bridge  
+- `shared/esx.lua` - ESX bridge
+
+This design allows for easy maintenance and framework-specific optimizations.
+
 ### Custom Inventory Integration
-To integrate with a custom inventory system, modify the `Inventory` table in `config.lua`:
+To integrate with a custom inventory system, modify the bridge files or add support to `shared/framework.lua`:
 
 ```lua
 Config.Inventory = 'custom_inventory'
@@ -390,6 +400,11 @@ testRoute = {
 
 ### Common Issues
 
+**Framework not detected:**
+- Ensure your framework resource is started before sd-drivingschool
+- Check console for framework detection messages
+- Try setting `Config.Framework` manually instead of 'auto'
+
 **License not appearing in menu:**
 - Check if `enabled = true` in license configuration
 - Verify license type spelling matches exactly
@@ -399,6 +414,7 @@ testRoute = {
 - Verify item exists in your inventory system
 - Check item name matches in `Config.LicenseItems`
 - Ensure inventory system is properly configured
+- Check if the correct bridge is loaded
 
 **NPC not spawning:**
 - Check if `ped.enabled = true` in configuration
@@ -409,6 +425,7 @@ testRoute = {
 - Check player has enough money
 - Verify player doesn't already have the license
 - Check console for error messages
+- Verify framework bridge is working correctly
 
 ### Debug Mode
 Enable debug mode in config to see detailed console output:
