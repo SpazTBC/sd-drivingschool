@@ -6,6 +6,9 @@ Config.Framework = 'auto' -- Set to 'auto' for automatic detection, 'qbx', 'qbco
 -- Inventory System (auto, qb-inventory, ps-inventory, qs-inventory, ox_inventory, esx_default)
 Config.Inventory = 'auto' -- Set to 'auto' for automatic detection or specify manually
 
+-- Target System (auto, qb-target, ox_target)
+Config.Target = 'auto' -- Set to 'auto' for automatic detection or specify manually
+
 -- General Settings
 Config.Debug = false
 Config.Locale = 'en'
@@ -122,6 +125,7 @@ Config.DrivingSchool = {
         enabled = true,
         model = 'a_m_m_business_01',
         coords = vector4(-1040.0, -2730.0, 20.17, 240.0)
+        -- Note: Requires qb-target or ox_target for interaction
     }
 }
 

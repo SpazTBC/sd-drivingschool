@@ -12,13 +12,14 @@ A comprehensive driving school resource for FiveM servers supporting QBX (QBox),
 - 📍 **Map Blip**: Configurable blip for the driving school location
 - 🔧 **Framework Support**: Compatible with QBX (QBox), QBCore, and ESX
 - 📦 **Inventory Integration**: Supports multiple inventory systems (ox_inventory, qs-inventory, ps-inventory, qb-inventory, esx_default)
+- 🎯 **Target Integration**: Compatible with both ox_target and qb-target
 - 🔗 **Bridge System**: Modular framework bridges for easy maintenance and updates
 - 👮 **Admin Commands**: License management commands for administrators
 
 ## 📋 Requirements
 
 - **QBX (QBox)**, **QBCore**, or **ESX** framework
-- **qb-target** (for NPC interaction)
+- **qb-target** or **ox_target** (for NPC interaction)
 - **qb-menu** or **esx_menu_default** (for menus)
 - **MySQL** (for ESX license storage)
 - One of the supported inventory systems:
@@ -27,6 +28,9 @@ A comprehensive driving school resource for FiveM servers supporting QBX (QBox),
   - **ps-inventory** 
   - **qb-inventory**
   - **esx_default** (ESX only)
+- One of the supported target systems:
+  - **ox_target** (recommended)
+  - **qb-target**
 
 ## 📥 Installation
 
@@ -52,8 +56,12 @@ Config.Framework = 'auto' -- 'auto', 'qbx', 'qbcore', or 'esx'
 ```lua
 Config.Inventory = 'auto' -- 'auto', 'ox_inventory', 'qs-inventory', 'ps-inventory', 'qb-inventory', or 'esx_default'
 ```
+4. Configure your target system (or leave as 'auto' for automatic detection):
+```lua
+Config.Target = 'auto' -- 'auto', 'ox_target', or 'qb-target'
+```
 
-> **Note**: The resource automatically detects your framework and inventory system. Manual configuration is only needed if auto-detection fails.
+> **Note**: The resource automatically detects your framework, inventory, and target systems. Manual configuration is only needed if auto-detection fails.
 
 ### Step 4: Add License Items to Your Inventory
 Add these items to your inventory system's items file:
@@ -142,6 +150,7 @@ Config = {}
 -- Framework Settings
 Config.Framework = 'auto' -- 'auto', 'qbx', 'qbcore', or 'esx'
 Config.Inventory = 'auto' -- 'auto', 'ox_inventory', 'qs-inventory', 'ps-inventory', 'qb-inventory', or 'esx_default'
+Config.Target = 'auto' -- 'auto', 'ox_target', or 'qb-target'
 Config.ReplacementCost = 500 -- Cost for replacement licenses
 Config.Debug = false -- Enable debug prints
 
@@ -419,7 +428,12 @@ testRoute = {
 **NPC not spawning:**
 - Check if `ped.enabled = true` in configuration
 - Verify coordinates are correct for your server
-- Ensure qb-target is installed and working
+- Ensure qb-target or ox_target is installed and working
+
+**Target interaction not working:**
+- Verify you have qb-target or ox_target installed
+- Check that the target system is detected correctly in console
+- Try setting `Config.Target` manually instead of 'auto'
 
 **Tests not starting:**
 - Check player has enough money

@@ -27,5 +27,6 @@ files {
 
 dependencies {
     'qb-core', -- or esx or qbx_core
-    'qb-target' -- optional
+    'qb-target', -- or ox_target (optional)
+    'ox_target' -- optional
 }

@@ -33,6 +33,18 @@ if Config.Inventory == 'auto' then
     end
 end
 
+-- Target System Detection
+if Config.Target == 'auto' then
+    if GetResourceState('ox_target') == 'started' then
+        Config.Target = 'ox_target'
+    elseif GetResourceState('qb-target') == 'started' then
+        Config.Target = 'qb-target'
+    else
+        print('^1[SD-DrivingSchool] No supported target system detected!^0')
+        Config.Target = 'none'
+    end
+end
+
 -- Load appropriate bridge based on framework
 if Config.Framework == 'qbx' then
     require 'shared.qbx'
@@ -76,6 +88,23 @@ function Framework.GetPlayerData()
         return ESX.GetPlayerData()
     end
     return nil
+end
+
+-- Target System Functions
+function Framework.AddTargetEntity(entity, options)
+    if Config.Target == 'ox_target' then
+        exports.ox_target:addLocalEntity(entity, options)
+    elseif Config.Target == 'qb-target' then
+        exports['qb-target']:AddTargetEntity(entity, options)
+    end
+end
+
+function Framework.RemoveTargetEntity(entity)
+    if Config.Target == 'ox_target' then
+        exports.ox_target:removeLocalEntity(entity)
+    elseif Config.Target == 'qb-target' then
+        exports['qb-target']:RemoveTargetEntity(entity)
+    end
 end
 
 -- Inventory Functions

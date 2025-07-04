@@ -466,17 +466,27 @@ Citizen.CreateThread(function()
         SetBlockingOfNonTemporaryEvents(ped, true)
         
         -- Add interaction
-        exports['qb-target']:AddTargetEntity(ped, {
-            options = {
+        if Config.Target == 'ox_target' then
+            Framework.AddTargetEntity(ped, {
                 {
-                    type = "client",
                     event = "sd-drivingschool:client:openMenu",
                     icon = "fas fa-car",
                     label = "Talk to Driving Instructor",
+                }
+            })
+        elseif Config.Target == 'qb-target' then
+            Framework.AddTargetEntity(ped, {
+                options = {
+                    {
+                        type = "client",
+                        event = "sd-drivingschool:client:openMenu",
+                        icon = "fas fa-car",
+                        label = "Talk to Driving Instructor",
+                    },
                 },
-            },
-            distance = 3.0
-        })
+                distance = 3.0
+            })
+        end
     end
 end)
 
