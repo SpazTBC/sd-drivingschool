@@ -45,13 +45,17 @@ if Config.Target == 'auto' then
     end
 end
 
--- Load appropriate bridge based on framework
-if Config.Framework == 'qbx' then
-    require 'shared.qbx'
-elseif Config.Framework == 'qbcore' then
-    require 'shared.qb'
-elseif Config.Framework == 'esx' then
-    require 'shared.esx'
+-- Framework bridge will be loaded after this file via fxmanifest order
+
+-- Initialize framework bridge after detection
+function InitializeFrameworkBridge()
+    if Config.Framework == 'qbx' and QBX then
+        FrameworkBridge = QBX
+    elseif Config.Framework == 'qbcore' and QB then
+        FrameworkBridge = QB
+    elseif Config.Framework == 'esx' and ESX then
+        FrameworkBridge = ESX
+    end
 end
 
 -- Framework Functions

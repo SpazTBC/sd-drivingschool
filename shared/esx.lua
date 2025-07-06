@@ -1,9 +1,11 @@
-ESX = {}
+-- ESX Framework Bridge
+if Config.Framework == 'esx' then
+    ESX = {}
 
--- ESX Framework Functions
-function ESX.GetFramework()
-    return exports['es_extended']:getSharedObject()
-end
+    -- ESX Framework Functions
+    function ESX.GetFramework()
+        return exports['es_extended']:getSharedObject()
+    end
 
 function ESX.ShowNotification(source, message, type)
     TriggerClientEvent('esx:showNotification', source, message)
@@ -262,4 +264,4 @@ function ESX.SetupDatabase()
     end
 end
 
-return ESX
+end

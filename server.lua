@@ -1,13 +1,30 @@
 -- Framework Bridge
 local FrameworkBridge = {}
 
-if Config.Framework == 'qbx' then
-    FrameworkBridge = QBX
-elseif Config.Framework == 'qbcore' then
-    FrameworkBridge = QB
-elseif Config.Framework == 'esx' then
-    FrameworkBridge = ESX
-end
+-- Initialize framework bridge
+Citizen.CreateThread(function()
+    Wait(100) -- Wait for framework detection
+    if Config.Framework == 'qbx' and QBX then
+        FrameworkBridge = QBX
+    elseif Config.Framework == 'qbcore' and QB then
+        FrameworkBridge = QB
+    elseif Config.Framework == 'esx' and ESX then
+        FrameworkBridge = ESX
+    else
+        -- Fallback to Framework functions if bridges fail
+        FrameworkBridge = Framework
+    end
+    
+    -- Register admin commands after bridge is initialized
+    if FrameworkBridge.RegisterAdminCommands then
+        FrameworkBridge.RegisterAdminCommands()
+    end
+    
+    -- Setup database if needed
+    if Config.Framework == 'esx' and FrameworkBridge.SetupDatabase then
+        FrameworkBridge.SetupDatabase()
+    end
+end)
 
 -- Helper Functions
 function GetPlayer(source)
@@ -267,13 +284,7 @@ AddEventHandler('playerDropped', function()
     end
 end)
 
--- Admin Commands
-FrameworkBridge.RegisterAdminCommands()
-
--- Database setup for ESX
-if Config.Framework == 'esx' then
-    FrameworkBridge.SetupDatabase()
-end
+-- Admin commands and database setup are handled in initialization thread above
 
 -- Startup message
 Citizen.CreateThread(function()

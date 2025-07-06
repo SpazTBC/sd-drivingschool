@@ -10,32 +10,58 @@ local testState = {
 -- Framework Bridge
 local FrameworkBridge = {}
 
-if Config.Framework == 'qbx' then
-    FrameworkBridge = QBX
-elseif Config.Framework == 'qbcore' then
-    FrameworkBridge = QB
-elseif Config.Framework == 'esx' then
-    FrameworkBridge = ESX
+-- Initialize framework bridge
+local bridgeReady = false
+Citizen.CreateThread(function()
+    Wait(100) -- Wait for framework detection
+    if Config.Framework == 'qbx' and QBX then
+        FrameworkBridge = QBX
+    elseif Config.Framework == 'qbcore' and QB then
+        FrameworkBridge = QB
+    elseif Config.Framework == 'esx' and ESX then
+        FrameworkBridge = ESX
+    else
+        -- Fallback to Framework functions if bridges fail
+        FrameworkBridge = Framework
+    end
+    bridgeReady = true
+end)
+
+-- Safe bridge call function
+function SafeCallBridge(funcName, ...)
+    while not bridgeReady do
+        Wait(10)
+    end
+    if FrameworkBridge and FrameworkBridge[funcName] then
+        return FrameworkBridge[funcName](...)
+    else
+        print("^1[SD-DrivingSchool] Bridge function not found: " .. funcName .. "^0")
+        return nil
+    end
 end
 
 -- Check if player has license
 function HasLicense(licenseType, cb)
     if Config.Framework == 'qbx' or Config.Framework == 'qbcore' then
-        local PlayerData = FrameworkBridge.GetPlayerData()
-        local licenseMap = {
-            regular = 'driver',
-            cdl = 'cdl',
-            motorcycle = 'motorcycle'
-        }
-        
-        local qbLicenseType = licenseMap[licenseType]
-        local hasLicense = false
-        
-        if qbLicenseType and PlayerData.metadata and PlayerData.metadata.licences then
-            hasLicense = PlayerData.metadata.licences[qbLicenseType] == true
+        local PlayerData = SafeCallBridge('GetPlayerData')
+        if PlayerData then
+            local licenseMap = {
+                regular = 'driver',
+                cdl = 'cdl',
+                motorcycle = 'motorcycle'
+            }
+            
+            local qbLicenseType = licenseMap[licenseType]
+            local hasLicense = false
+            
+            if qbLicenseType and PlayerData.metadata and PlayerData.metadata.licences then
+                hasLicense = PlayerData.metadata.licences[qbLicenseType] == true
+            end
+            
+            cb(hasLicense)
+        else
+            cb(false)
         end
-        
-        cb(hasLicense)
     else
         -- For ESX, check via server event
         TriggerServerEvent('sd-drivingschool:server:checkLicense', licenseType, cb)
@@ -128,7 +154,7 @@ function OpenDrivingSchoolMenu()
                     }
                 })
                 
-                FrameworkBridge.ShowMenu({
+                SafeCallBridge('ShowMenu', {
                     {
                         header = "🏫 Driving School",
                         isMenuHeader = true,
@@ -155,7 +181,7 @@ RegisterNetEvent('sd-drivingschool:client:openSubMenu', function(data)
         table.insert(subMenuItems, item)
     end
     
-    FrameworkBridge.ShowMenu(subMenuItems)
+    SafeCallBridge('ShowMenu', subMenuItems)
 end)
 
 -- Buy Replacement License
@@ -163,7 +189,7 @@ RegisterNetEvent('sd-drivingschool:client:buyReplacement', function(data)
     local licenseType = data.licenseType
     local licenseData = Config.Licenses[licenseType]
     
-    FrameworkBridge.CloseMenu()
+    SafeCallBridge('CloseMenu')
     
     -- Confirm purchase
     local confirmMenu = {
@@ -190,12 +216,12 @@ RegisterNetEvent('sd-drivingschool:client:buyReplacement', function(data)
         }
     }
     
-    FrameworkBridge.ShowMenu(confirmMenu)
+    SafeCallBridge('ShowMenu', confirmMenu)
 end)
 
 -- Confirm Replacement Purchase
 RegisterNetEvent('sd-drivingschool:client:confirmReplacement', function(data)
-    FrameworkBridge.CloseMenu()
+    SafeCallBridge('CloseMenu')
     TriggerServerEvent('sd-drivingschool:server:buyReplacement', data.licenseType)
 end)
 
@@ -206,13 +232,13 @@ end)
 
 -- Start Written Test
 RegisterNetEvent('sd-drivingschool:client:startWrittenTest', function(data)
-    FrameworkBridge.CloseMenu()
+    SafeCallBridge('CloseMenu')
     TriggerServerEvent('sd-drivingschool:server:startWrittenTest', data.licenseType)
 end)
 
 -- Start Driving Test  
 RegisterNetEvent('sd-drivingschool:client:startDrivingTest', function(data)
-    FrameworkBridge.CloseMenu()
+    SafeCallBridge('CloseMenu')
     TriggerServerEvent('sd-drivingschool:server:startDrivingTest', data.licenseType)
 end)
 
@@ -259,7 +285,7 @@ function ShowWrittenQuestion()
         })
     end
     
-    FrameworkBridge.ShowMenu(menuItems)
+    SafeCallBridge('ShowMenu', menuItems)
 end
 
 -- Answer Question
@@ -278,7 +304,7 @@ RegisterNetEvent('sd-drivingschool:client:answerQuestion', function(data)
         local licenseData = Config.Licenses[currentTest.licenseType]
         local passed = score >= licenseData.requiredScore
         
-        FrameworkBridge.CloseMenu()
+        SafeCallBridge('CloseMenu')
         TriggerServerEvent('sd-drivingschool:server:finishWrittenTest', currentTest.licenseType, passed, score)
         currentTest = nil
     else
@@ -315,7 +341,7 @@ function StartDrivingTest()
     
     -- Spawn vehicle
     if Config.Framework == 'qbx' or Config.Framework == 'qbcore' then
-        FrameworkBridge.SpawnVehicle(licenseData.vehicle, function(veh)
+        SafeCallBridge('SpawnVehicle', licenseData.vehicle, function(veh)
             testVehicle = veh
             SetPedIntoVehicle(PlayerPedId(), veh, -1)
             SetEntityHeading(veh, spawnCoords.w)
@@ -465,28 +491,31 @@ Citizen.CreateThread(function()
         SetEntityInvincible(ped, true)
         SetBlockingOfNonTemporaryEvents(ped, true)
         
-        -- Add interaction
-        if Config.Target == 'ox_target' then
-            Framework.AddTargetEntity(ped, {
-                {
-                    event = "sd-drivingschool:client:openMenu",
-                    icon = "fas fa-car",
-                    label = "Talk to Driving Instructor",
-                }
-            })
-        elseif Config.Target == 'qb-target' then
-            Framework.AddTargetEntity(ped, {
-                options = {
+        -- Add interaction - wait for target system to be ready
+        Citizen.CreateThread(function()
+            Wait(200) -- Wait for target system
+            if Config.Target == 'ox_target' then
+                exports.ox_target:addLocalEntity(ped, {
                     {
-                        type = "client",
                         event = "sd-drivingschool:client:openMenu",
                         icon = "fas fa-car",
                         label = "Talk to Driving Instructor",
+                    }
+                })
+            elseif Config.Target == 'qb-target' then
+                exports['qb-target']:AddTargetEntity(ped, {
+                    options = {
+                        {
+                            type = "client",
+                            event = "sd-drivingschool:client:openMenu",
+                            icon = "fas fa-car",
+                            label = "Talk to Driving Instructor",
+                        },
                     },
-                },
-                distance = 3.0
-            })
-        end
+                    distance = 3.0
+                })
+            end
+        end)
     end
 end)
 

@@ -1,9 +1,11 @@
-QB = {}
+-- QBCore Framework Bridge
+if Config.Framework == 'qbcore' then
+    QB = {}
 
--- QBCore Framework Functions
-function QB.GetFramework()
-    return exports['qb-core']:GetCoreObject()
-end
+    -- QBCore Framework Functions
+    function QB.GetFramework()
+        return exports['qb-core']:GetCoreObject()
+    end
 
 function QB.ShowNotification(source, message, type)
     TriggerClientEvent('QBCore:Notify', source, message, type or 'primary')
@@ -305,4 +307,4 @@ function QB.RegisterAdminCommands()
     end, 'admin')
 end
 
-return QB
+end

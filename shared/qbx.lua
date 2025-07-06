@@ -1,48 +1,50 @@
-QBX = {}
+-- QBox Framework Bridge
+if Config.Framework == 'qbx' then
+    QBX = {}
 
--- QBox Framework Functions
-function QBX.GetFramework()
-    return exports.qbx_core:GetCoreObject()
-end
+    -- QBox Framework Functions
+    function QBX.GetFramework()
+        return exports.qbx_core:GetCoreObject()
+    end
 
-function QBX.ShowNotification(source, message, type)
-    TriggerClientEvent('QBCore:Notify', source, message, type or 'primary')
-end
+    function QBX.ShowNotification(source, message, type)
+        TriggerClientEvent('QBCore:Notify', source, message, type or 'primary')
+    end
 
-function QBX.GetPlayerData()
-    local QBCore = QBX.GetFramework()
-    return QBCore.Functions.GetPlayerData()
-end
+    function QBX.GetPlayerData()
+        local QBCore = QBX.GetFramework()
+        return QBCore.Functions.GetPlayerData()
+    end
 
--- QBox Player Functions
-function QBX.GetPlayer(source)
-    local QBCore = QBX.GetFramework()
-    return QBCore.Functions.GetPlayer(source)
-end
+    -- QBox Player Functions
+    function QBX.GetPlayer(source)
+        local QBCore = QBX.GetFramework()
+        return QBCore.Functions.GetPlayer(source)
+    end
 
-function QBX.GetPlayerMoney(Player, moneyType)
-    return Player.Functions.GetMoney(moneyType or 'cash')
-end
+    function QBX.GetPlayerMoney(Player, moneyType)
+        return Player.Functions.GetMoney(moneyType or 'cash')
+    end
 
-function QBX.RemovePlayerMoney(Player, amount, moneyType)
-    return Player.Functions.RemoveMoney(moneyType or 'cash', amount)
-end
+    function QBX.RemovePlayerMoney(Player, amount, moneyType)
+        return Player.Functions.RemoveMoney(moneyType or 'cash', amount)
+    end
 
-function QBX.GetPlayerIdentifier(Player)
-    return Player.PlayerData.citizenid
-end
+    function QBX.GetPlayerIdentifier(Player)
+        return Player.PlayerData.citizenid
+    end
 
-function QBX.GetPlayerCharInfo(Player)
-    return {
-        firstname = Player.PlayerData.charinfo.firstname,
-        lastname = Player.PlayerData.charinfo.lastname,
-        birthdate = Player.PlayerData.charinfo.birthdate
-    }
-end
+    function QBX.GetPlayerCharInfo(Player)
+        return {
+            firstname = Player.PlayerData.charinfo.firstname,
+            lastname = Player.PlayerData.charinfo.lastname,
+            birthdate = Player.PlayerData.charinfo.birthdate
+        }
+    end
 
-function QBX.GetPlayerSource(Player)
-    return Player.PlayerData.source
-end
+    function QBX.GetPlayerSource(Player)
+        return Player.PlayerData.source
+    end
 
 -- QBox License Functions
 function QBX.AddLicense(Player, licenseType)
@@ -305,4 +307,4 @@ function QBX.RegisterAdminCommands()
     end, 'admin')
 end
 
-return QBX
+end
